@@ -1,0 +1,103 @@
+import { Popcorn } from 'lucide-react-native'
+import React, { useContext } from 'react'
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
+import MoviesContext from './MoviesContext'
+
+export default function SignIn() {
+    const {
+        userName,
+        setUserName,
+        userPassword,
+        setUserPassword,
+        signInBtn
+        } = useContext(MoviesContext);
+  return (
+    <>
+        <View style={{flex: 1,backgroundColor: '#000',}}>
+            <View style={styles.header}>
+            {/* <Pressable style={{alignItems: 'center'}} onPress={() => navigation.navigate('Home')}>
+            <ArrowLeft color='#fff' size={25}/>
+            </Pressable>
+            <Text style={{color: '#fff', fontSize: 18, fontWeight: 'bold'}}>{title}</Text>*/}
+            <Text style={{color: '#fff', fontSize: 18, fontWeight: 'bold', }}>Sign In</Text> 
+            </View>
+            <View style={styles.signInContainer}>
+                <View style={styles.brand}>
+                    <Pressable onPress={() => navigation.navigate('Home')}>
+                        <Popcorn
+                        color="#fa1b1b"
+                        size={80}
+                        style={{ transform: [{ rotate: "45deg" }] }}
+                        />
+                    </Pressable>
+                    <Text style={{ color: "#fff", fontSize: 22, fontWeight: 'bold' }}>
+                    Movieflix
+                </Text>
+                </View>
+                <View style={styles.signInCard}>
+                    <Text style={{fontSize: 20, fontWeight: 'bold', color: '#333'}}>Sign In</Text>
+                    <TextInput value={userName} placeholder='Enter user name' onChangeText={(text) => setUserName(text)} style={styles.cardInPut} />
+                    <TextInput value={userPassword} placeholder='Enter user password' onChangeText={(text) => setUserPassword(text)} style={styles.cardInPut} />
+                        <Pressable style={styles.btn} onPress={signInBtn}>
+                            <Text style={{fontSize: 15, color: '#fff', fontWeight: 'bold'}}>Sign In</Text>
+                        </Pressable>
+                        <Pressable onPress={() => alert('Sign Up!')}>
+                            <Text style={{fontSize: 12, color: '#333', fontWeight: 'bold'}}>Sign Up</Text>
+                        </Pressable>
+                </View>
+            </View>
+        </View>
+    </>
+  )
+}
+
+const styles = StyleSheet.create({
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#fa1b1b',
+        width: '100%',
+        paddingTop: 50,
+        paddingBottom: 20,
+        paddingHorizontal: 20
+      },
+      brand: {
+        alignItems: "center",
+        justifyContent: "center",
+        rowGap: 10
+      },
+      signInContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        rowGap: 40,
+        paddingTop: 40,
+        // borderWidth: 2,
+        // borderColor: 'red',
+        height: '80%',
+      },
+      signInCard: {
+        alignItems: 'center',
+        rowGap: 25,
+        backgroundColor: '#E9E9E9',
+        width: '90%',
+        padding: 20,
+        borderRadius: 10,
+      },
+      cardInPut: {
+        borderWidth: 2,
+        borderColor: '#333',
+        width: '80%',
+        borderRadius: 10,
+        paddingVertical: 5,
+        paddingHorizontal: 10
+      },
+      btn: {
+        borderWidth: 3,
+        borderColor: '#fa1b1b',
+        backgroundColor: '#fa1b1b',
+        borderRadius: 5,
+        paddingHorizontal: 10,
+        paddingVertical: 5
+      }
+})
