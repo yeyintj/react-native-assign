@@ -6,7 +6,7 @@ import MoviesContext from "./MoviesContext";
 import { useQuery } from "react-query";
 
 export default function MovieDetails({ navigation, route, }) {
-  const {theme} = useContext(MoviesContext);
+  const {theme, animatedLoding} = useContext(MoviesContext);
   const [detail, setDetail] = useState([]);
   const [movieList, setMovieLists] = useState([]);
   const [isLoding, setIsLoding] = useState(true)
@@ -88,7 +88,7 @@ export default function MovieDetails({ navigation, route, }) {
 
       isLoding ? 
       
-        getLoding()
+          animatedLoding()
          :
          <View style={{flex: 1,
           backgroundColor: theme?"#000":'#fff',

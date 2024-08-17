@@ -6,7 +6,7 @@ import MoviesContext from "./MoviesContext";
 import { useQuery } from "react-query";
 
 export default function ActorDetails({ navigation,route }) {
-  const {theme} = useContext(MoviesContext);
+  const {theme, animatedLoding} = useContext(MoviesContext);
   const [actorDetails, setActorDetails] = useState([]);
   const [isLoding, setIsLoding] = useState(true);
 
@@ -18,26 +18,24 @@ export default function ActorDetails({ navigation,route }) {
     }
   )
 
-  console.log("Actor ID: ", Id)
 
   const fetchActorDetails = async (actorId) => {
     const response = await getRequest(`3/person/${actorId}?language=en-US`);
     setIsLoding(false);
     setActorDetails(response.data);
-    // console.log("Actor Detail: ", response.data);
   };
 
   
 
-  const getLoding = () => {
-    return <View style={{
-        flex: 1,
-        backgroundColor: theme?"#000":'#fff',
-        paddingVertical: '50%'
-      }}>
-        <ActivityIndicator color={theme?'#fff':'#000'} size='50'/>
-    </View>
-  }
+  // const getLoding = () => {
+  //   return <View style={{
+  //       flex: 1,
+  //       backgroundColor: theme?"#000":'#fff',
+  //       paddingVertical: '50%'
+  //     }}>
+  //       <ActivityIndicator color={theme?'#fff':'#000'} size='50'/>
+  //   </View>
+  // }
 
   const styles = StyleSheet.create({
     header: {
@@ -77,7 +75,7 @@ export default function ActorDetails({ navigation,route }) {
 
 
   return (
-         isLoding ? getLoding()
+         isLoding ? animatedLoding()
          :
          <View style={{flex: 1}}>
             <View style={styles.header}>

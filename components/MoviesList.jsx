@@ -15,6 +15,11 @@ import filter from "lodash.filter";
 import MoviesContext from "./MoviesContext";
 import { getRequest } from "./Api";
 import { Popcorn, Search } from 'lucide-react-native';
+import { useQuery } from "react-query";
+import Popular from "./Popular";
+import NowPlaying from "./NowPlaying";
+import TopRate from "./TopRate";
+import UpComing from "./UpComing";
 
 
 export default function MoviesList({ navigation}) {
@@ -34,11 +39,29 @@ export default function MoviesList({ navigation}) {
     upComing,
     setUpComing,
     isLoding,
-    getLoding,
+    setIsLoding,
+    animatedLoding,
+    getLoding
   } = useContext(MoviesContext);
   //https://image.tmdb.org/t/p/w500/
 
-
+  console.log("Popular: ", popular);
+  
+  
+  const {isLoading,data,error,refetch} = useQuery('movies', 
+    async () => {
+      
+      const responseNowPlaying = await getRequest(
+        "/3/movie/now_playing?language=en-US&page=1"
+      );
+      setIsLoding(false);
+      setNowPlaying(responseNowPlaying.data.results);
+      
+    }
+  )
+  
+  
+  
 
   const handleRefresh = () => {
     numRef.current = numRef.current + 1;
@@ -197,7 +220,7 @@ export default function MoviesList({ navigation}) {
     bottomTapNagivator: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      borderWidth: 1,
+      // borderWidth: 1,
       // borderTopColor: '#deddd5',
       paddingHorizontal: 20,
       paddingVertical: 10,
@@ -206,204 +229,154 @@ export default function MoviesList({ navigation}) {
     }
   });
 
-  console.log("Movie List: ", movies);
+  // console.log("Up Coming: ", upComing);
 
   return (
-    isLoding ? getLoding() :
-    <View style={{ flex: 1, width: "100%",backgroundColor: theme?'#000':'#fff',}}>
-      <View style={styles.header}>
-        {/* <Pressable style={{alignItems: 'center'}} onPress={() => navigation.navigate('Home')}>
-          <ArrowLeft color='#fff' size={25}/>
-        </Pressable>
-        <Text style={{color: '#fff', fontSize: 18, fontWeight: 'bold'}}>{title}</Text>
-        <Text style={{opacity: 0}}>title</Text> */}
-      </View>
-      <View style={styles.searchContainer}>
-        <View style={styles.brand}>
-          <Pressable onPress={() => navigation.navigate('Home')}>
-            <Popcorn
-              color="#fa1b1b"
-              size={35}
-              style={{ transform: [{ rotate: "45deg" }] }}
-            />
-          </Pressable>
-          <Text style={{ color: theme?"#fff":'#000', fontSize: 18, fontWeight: 'bold' }}>
-            Movieflix
-          </Text>
-        </View>
-        <View style={styles.inputBar}>
-          <Search color={theme?"#fff":'#000'} size={25} />
-          <TextInput
-            style={styles.inputBox}
-            value={search}
-            onChangeText={(text) => handleSearch(text)}
-            cursorColor={theme?"#fff":'#000'}
-          />
-        </View>
-      </View>
-
-      {/* <FlatList
-        data={movies}
-        renderItem={({ item, index }) => {
-          return (
-            <View key={index} style={styles.card}>
-              <Image
-                source={{
-                  uri: `https://image.tmdb.org/t/p/original/${item.poster_path}`,
-                }}
-                style={styles.cardImage}
-              />
-
-              <View>
-                <Text style={styles.cardTitle}>{item.title}</Text>
-                <Text style={styles.cardOverview}>{item.overview}</Text>
-
-                <View>
-                  <View style={styles.footerContainer}>
-                    <View style={styles.cardFooter}>
-                      <Heart color="#fa1b1b" size={17} fill="red" />
-                      <Text style={styles.cardFooter_popularity}>
-                        {item.popularity}
-                      </Text>
-                    </View>
-                    <View style={styles.cardFooter}>
-                      <Star color="#bed60b" size={17} fill="yellow" />
-                      <Text style={styles.cardFooter_voteAverage}>
-                        {item.vote_average}
-                      </Text>
-                    </View>
-                  </View>
-                  <View style={styles.footerContainer}>
-                    <Text style={styles.cardFooter_releaseDate}>
-                      Release Date: {item.release_date}
-                    </Text>
-                    <Pressable
-                      onPress={() => navigation.navigate("Movie Details", {Id: item.id})}
-                    >
-                      <Text
-                        style={{
-                          color: "#fff",
-                          fontSize: 15,
-                          fontWeight: "700",
-                          borderWidth: 2,
-                          borderColor: "#fa1b1b",
-                          paddingHorizontal: 10,
-                          paddingVertical: 5,
-                          borderRadius: 10,
-                        }}
-                      >
-                        See Details
-                      </Text>
+          <>
+            {isLoading? animatedLoding(): 
+            
+              <View style={{ flex: 1, width: "100%",backgroundColor: theme?'#000':'#fff',}}>
+                <View style={styles.header}>
+                  {/* <Pressable style={{alignItems: 'center'}} onPress={() => navigation.navigate('Home')}>
+                    <ArrowLeft color='#fff' size={25}/>
+                  </Pressable>
+                  <Text style={{color: '#fff', fontSize: 18, fontWeight: 'bold'}}>{title}</Text>
+                  <Text style={{opacity: 0}}>title</Text> */}
+                </View>
+                <View style={styles.searchContainer}>
+                  <View style={styles.brand}>
+                    <Pressable onPress={() => navigation.navigate('Home')}>
+                      <Popcorn
+                        color="#fa1b1b"
+                        size={35}
+                        style={{ transform: [{ rotate: "45deg" }] }}
+                      />
                     </Pressable>
+                    <Text style={{ color: theme?"#fff":'#000', fontSize: 18, fontWeight: 'bold' }}>
+                      Movieflix
+                    </Text>
+                  </View>
+                  <View style={styles.inputBar}>
+                    <Search color={theme?"#fff":'#000'} size={25} />
+                    <TextInput
+                      style={styles.inputBox}
+                      value={search}
+                      onChangeText={(text) => handleSearch(text)}
+                      cursorColor={theme?"#fff":'#000'}
+                    />
                   </View>
                 </View>
-              </View>
-            </View>
-          );
-        }}
-        onEndReached={handleRefresh}
-      /> */}
-      <ScrollView>
-        
-        <Text style={{color: theme?'#fff':'#000', fontSize: 15, fontWeight: 'bold', marginLeft: 20, paddingTop: 30}}>Now Playing</Text>
-        <View style={styles.cardContainer}>
-          <FlatList horizontal data={nowPlaying} renderItem={({item, index}) => {
-            return(
-              <Pressable key={index} style={styles.card} onPress={() => navigation.navigate("Movie Details", {Id: item.id, title: item.title})}>
-                <Image
-                    source={{
-                      uri: `https://image.tmdb.org/t/p/original/${item.poster_path}`,
-                    }}
-                    style={styles.cardImage}
-                  />
-                <Text style={{color: theme?'#fff':'#000', fontSize: 8, fontWeight: 'bold', textAlign: 'center'}}>{item.title}</Text>
-              </Pressable>
-            )
-          }}
-          onEndReached={handleRefresh}
-          />
-        </View>
-        
-        <Text style={{color: theme?'#fff':'#000', fontSize: 15, fontWeight: 'bold', marginLeft: 20}}>Popular</Text>
-        <View style={styles.cardContainer}>
-          <FlatList horizontal data={popular} renderItem={({item, index}) => {
-            return(
-              <Pressable key={index} style={styles.card} onPress={() => navigation.navigate("Movie Details", {Id: item.id, title: item.title})}>
-                <Image
-                    source={{
-                      uri: `https://image.tmdb.org/t/p/original/${item.poster_path}`,
-                    }}
-                    style={styles.cardImage}
-                  />
-                <Text style={{color: theme?'#fff':'#000', fontSize: 8, fontWeight: 'bold', textAlign: 'center'}}>{item.title}</Text>
-              </Pressable>
-            )
-          }}
-          onEndReached={handleRefresh}
-          />
-        </View>
-        
-        <Text style={{color: theme?'#fff':'#000', fontSize: 15, fontWeight: 'bold', marginLeft: 20}}>Top Rate</Text>
-        <View style={styles.cardContainer}>
-          <FlatList horizontal data={topRate} renderItem={({item, index}) => {
-            return(
-              <Pressable key={index} style={styles.card} onPress={() => navigation.navigate("Movie Details", {Id: item.id, title: item.title})}>
-                <Image
-                    source={{
-                      uri: `https://image.tmdb.org/t/p/original/${item.poster_path}`,
-                    }}
-                    style={styles.cardImage}
-                  />
-                <Text style={{color: theme?'#fff':'#000', fontSize: 8, fontWeight: 'bold', textAlign: 'center'}}>{item.title}</Text>
-              </Pressable>
-            )
-          }}
-          onEndReached={handleRefresh}
-          />
-        </View>
 
-        <Text style={{color: theme?'#fff':'#000', fontSize: 15, fontWeight: 'bold', marginLeft: 20}}>Up Coming</Text>
-        <View style={styles.cardContainer}>
-          <FlatList horizontal data={upComing} renderItem={({item, index}) => {
-            return(
-              <Pressable key={index} style={styles.card} onPress={() => navigation.navigate("Movie Details", {Id: item.id, title: item.title})}>
-                {isLoding ? getLoding() :
-                  <>
-                    <Image
-                        source={{
-                          uri: `https://image.tmdb.org/t/p/original/${item.poster_path}`,
-                        }}
-                        style={styles.cardImage}
-                      />
-                    <Text style={{color: theme?'#fff':'#000', fontSize: 8, fontWeight: 'bold', textAlign: 'center'}}>{item.title}</Text>
-                  </>
-                }
-              </Pressable>
-            )
-          }}
-          onEndReached={handleRefresh}
-          />
-        </View>
-      </ScrollView>
-      <View style={styles.bottomTapNagivator}>
-        <Pressable onPress={() => alert("Home!")} style={{alignItems: 'center',}}>
-          <Home color={theme?'#fff':'#000'}/>
-          <Text style={{color: theme?'#fff':'#000', textAlign: 'center'}}>Home</Text>
-        </Pressable>
-        <Pressable onPress={() => alert("Favourite!")} style={{alignItems: 'center',}}>
-          <Heart color={theme?'#fff':'#000'}/>
-          <Text style={{color: theme?'#fff':'#000', textAlign: 'center'}}>Favourite</Text>
-        </Pressable>
-        <Pressable onPress={() => alert("Music List!")} style={{alignItems: 'center',}}>
-          <ListMusic color={theme?'#fff':'#000'}/>
-          <Text style={{color: theme?'#fff':'#000'}}>Lists</Text>
-        </Pressable>
-        <Pressable onPress={() => navigation.navigate('Setting')}  style={{alignItems: 'center',}}>
-          <User color={theme?'#fff':'#000'}/>
-          <Text style={{color: theme?'#fff':'#000'}}>User</Text>
-        </Pressable>
-      </View>
-    </View>
+                {/* <FlatList
+                  data={movies}
+                  renderItem={({ item, index }) => {
+                    return (
+                      <View key={index} style={styles.card}>
+                        <Image
+                          source={{
+                            uri: `https://image.tmdb.org/t/p/original/${item.poster_path}`,
+                          }}
+                          style={styles.cardImage}
+                        />
+
+                        <View>
+                          <Text style={styles.cardTitle}>{item.title}</Text>
+                          <Text style={styles.cardOverview}>{item.overview}</Text>
+
+                          <View>
+                            <View style={styles.footerContainer}>
+                              <View style={styles.cardFooter}>
+                                <Heart color="#fa1b1b" size={17} fill="red" />
+                                <Text style={styles.cardFooter_popularity}>
+                                  {item.popularity}
+                                </Text>
+                              </View>
+                              <View style={styles.cardFooter}>
+                                <Star color="#bed60b" size={17} fill="yellow" />
+                                <Text style={styles.cardFooter_voteAverage}>
+                                  {item.vote_average}
+                                </Text>
+                              </View>
+                            </View>
+                            <View style={styles.footerContainer}>
+                              <Text style={styles.cardFooter_releaseDate}>
+                                Release Date: {item.release_date}
+                              </Text>
+                              <Pressable
+                                onPress={() => navigation.navigate("Movie Details", {Id: item.id})}
+                              >
+                                <Text
+                                  style={{
+                                    color: "#fff",
+                                    fontSize: 15,
+                                    fontWeight: "700",
+                                    borderWidth: 2,
+                                    borderColor: "#fa1b1b",
+                                    paddingHorizontal: 10,
+                                    paddingVertical: 5,
+                                    borderRadius: 10,
+                                  }}
+                                >
+                                  See Details
+                                </Text>
+                              </Pressable>
+                            </View>
+                          </View>
+                        </View>
+                      </View>
+                    );
+                  }}
+                  onEndReached={handleRefresh}
+                /> */}
+                <ScrollView>
+                  
+                <Text style={{color: theme?'#fff':'#000', fontSize: 15, fontWeight: 'bold', marginLeft: 20, paddingTop: 30}}>Now Playing</Text>
+                  <View style={styles.cardContainer}>
+                    <FlatList horizontal data={nowPlaying} renderItem={({item, index}) => {
+                      return(
+                        <Pressable key={index} style={styles.card} onPress={() => navigation.navigate("Movie Details", {Id: item.id, title: item.title})}>
+                          <Image
+                              source={{
+                                uri: `https://image.tmdb.org/t/p/original/${item.poster_path}`,
+                              }}
+                              style={styles.cardImage}
+                            />
+                          <Text style={{color: theme?'#fff':'#000', fontSize: 8, fontWeight: 'bold', textAlign: 'center'}}>{item.title}</Text>
+                        </Pressable>
+                      )
+                    }}
+                    onEndReached={handleRefresh}
+                    />
+                  </View>
+                  
+                  <Popular />
+                  
+                  <TopRate />
+                  
+                  <UpComing />
+
+                </ScrollView>
+                <View style={styles.bottomTapNagivator}>
+                  <Pressable onPress={() => alert("Home!")} style={{alignItems: 'center',}}>
+                    <Home color={theme?'#fff':'#000'}/>
+                    <Text style={{color: theme?'#fff':'#000', textAlign: 'center'}}>Home</Text>
+                  </Pressable>
+                  <Pressable onPress={() => alert("Favourite!")} style={{alignItems: 'center',}}>
+                    <Heart color={theme?'#fff':'#000'}/>
+                    <Text style={{color: theme?'#fff':'#000', textAlign: 'center'}}>Favourite</Text>
+                  </Pressable>
+                  <Pressable onPress={() => alert("Music List!")} style={{alignItems: 'center',}}>
+                    <ListMusic color={theme?'#fff':'#000'}/>
+                    <Text style={{color: theme?'#fff':'#000'}}>Lists</Text>
+                  </Pressable>
+                  <Pressable onPress={() => navigation.navigate('Setting')}  style={{alignItems: 'center',}}>
+                    <User color={theme?'#fff':'#000'}/>
+                    <Text style={{color: theme?'#fff':'#000'}}>User</Text>
+                  </Pressable>
+                </View>
+              </View>
+            } 
+          </>
   );
 }
 

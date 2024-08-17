@@ -2,15 +2,16 @@ import { ArrowLeft, LogOut, MoonStar, SunMoon, User } from 'lucide-react-native'
 import React, { useContext } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import MoviesContext from './MoviesContext'
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 
 
 export default function Setting({navigation}) {
   
-  const {signOutBtn, theme, darkTheme, lightTheme} = useContext(MoviesContext);
+  const {signOutBtn, theme, darkTheme, lightTheme, userName} = useContext(MoviesContext);
 
-
+  console.log('User Name: ', userName)
   return (
     <View style={{flex: 1,backgroundColor: theme ? '#000' : '#fff'}}>
           <View style={styles.header}>
@@ -23,7 +24,7 @@ export default function Setting({navigation}) {
             <View style={styles.settingContainer}>
               <View style={{alignItems: 'center', rowGap: 15}}>
                 <User color={theme?'#fff':'#000'} size={50}/>
-                <Text style={{color: theme?'#fff':'#000', fontSize: 20, fontWeight: 'bold'}}>Alice</Text>
+                <Text style={{color: theme?'#fff':'#000', fontSize: 20, fontWeight: 'bold'}}>{userName}</Text>
               </View>
               <Pressable onPress={signOutBtn} style={{flexDirection: 'row', alignItems: 'center',gap: 10,}}>
                 <Text style={{color: theme?'#fff':'#000', fontSize: 12}}>Log Out</Text>

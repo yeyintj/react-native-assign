@@ -16,12 +16,14 @@ import ActorDetails from "./ActorDetails";
 import { ActivityIndicator, useColorScheme, View } from "react-native";
 import SignIn from "./SignIn";
 import Setting from "./Setting";
+import SignUp from "./SignUp";
+import LottieView from "lottie-react-native";
 
 const Stack = createNativeStackNavigator();
 
 
-export default function MoviesApp() {
-  const datas = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+export default function MoviesApp({children}) {
+  // const datas = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
   const scheme = useColorScheme();
   const [theme, setTheme] = useState(scheme);
   const [movies, setMovies] = useState([]);
@@ -59,45 +61,36 @@ export default function MoviesApp() {
     setTheme(false);
   }
 
-  const signInBtn = () => {
-      if(userName==='Alice'&&userPassword==='Password'){
-        setIsSignedIn(true)
-      }else{
-        return alert('invalid user name or password');
-      }
-  }
-
+  
   const signOutBtn = () => {
-    setIsSignedIn(false)
+
+      setIsSignedIn(false)
+      setIsLoding(true)
+      setUserName('');
+      setUserPassword('');
+
+      setTimeout(() => {
+        setIsLoding(false)
+      }, 100)
   }
 
-  useQuery('movies', 
-    async () => {
-      const responseNowPlaying = await getRequest(
-        "/3/movie/now_playing?language=en-US&page=1"
-      );
-      setIsLoding(false);
-      setNowPlaying(responseNowPlaying.data.results);
-      const responsePopular = await getRequest('3/movie/popular?language=en-US&page=1');
-      setPopular(responsePopular.data.results);
-      const responseTopRated = await getRequest('3/movie/top_rated?language=en-US&page=1');
-      setTopRate(responseTopRated.data.results);
-      const responseUpComing = await getRequest('3/movie/upcoming?language=en-US&page=1');
-      setUpComing(responseUpComing.data.results);
-    }
-  )
+  const animatedLoding = () => {
+
+    return  <View style={{
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: theme?"#000":'#fff',
+      paddingVertical: '50%'
+    }}> 
+              <LottieView source={require('./Loding.json')} autoPlay loop style={{width: 100, flex: 1,}}/>
+            </View> 
+  }
 
   
+  // console.log("Popular: ", popular);
 
-  // const fetchNowPlaying = async () => {
-  //   const reponse = await getRequest('3/movie/now_playing?language=en-US&page=1');
-  //   setIsLoding(false);
-  //   setNowPlaying(reponse.data.results);
-  // }
-  
-  console.log("Up Coming: ", upComing);
-
-console.log("Movies List: ", nowPlaying)
+// console.log("Movies List: ", nowPlaying)
 
   return (
     <NavigationContainer>
@@ -110,7 +103,6 @@ console.log("Movies List: ", nowPlaying)
           setUserName,
           userPassword,
           setUserPassword,
-          signInBtn,
           signOutBtn,
           isLoding,
           setIsLoding,
@@ -130,28 +122,29 @@ console.log("Movies List: ", nowPlaying)
           setUpComing,
           isLoding,
           setIsLoding,
-          getLoding
+          getLoding,
+          setIsSignedIn,
+          animatedLoding
         }}
       >
         {isSignedIn ? 
         (
-          isLoding? getLoding() : 
             <Stack.Navigator>
-                  <Stack.Screen name="Home" component={MoviesList} options={{headerShown: false}}/>
+                <Stack.Screen name="Home" component={MoviesList} options={{headerShown: false}}/>
                 <Stack.Screen name="Movie Details" component={MovieDetails} options={{headerShown: false}}/>
                 <Stack.Screen name="Actor Details" component={ActorDetails} options={{headerShown: false}}/>
                 <Stack.Screen name="Setting" component={Setting} options={{headerShown: false}}/>
             </Stack.Navigator>
         )
-
         :
         (
-          isLoding? getLoding() :
           <Stack.Navigator>
                   <Stack.Screen name="SignIn" component={SignIn} options={{headerShown: false}}/>
+                  <Stack.Screen name="SignUp" component={SignUp} options={{headerShown: false}}/>
           </Stack.Navigator>
         ) 
       }
+      {children}
       </MoviesContext.Provider>
     </NavigationContainer>
   );
