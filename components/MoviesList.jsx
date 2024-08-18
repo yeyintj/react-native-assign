@@ -15,11 +15,8 @@ import filter from "lodash.filter";
 import MoviesContext from "./MoviesContext";
 import { getRequest } from "./Api";
 import { Popcorn, Search } from 'lucide-react-native';
-import { useQuery } from "react-query";
-import Popular from "./Popular";
-import NowPlaying from "./NowPlaying";
-import TopRate from "./TopRate";
-import UpComing from "./UpComing";
+import { useQuery } from "@tanstack/react-query";
+
 
 
 export default function MoviesList({ navigation}) {
@@ -38,71 +35,142 @@ export default function MoviesList({ navigation}) {
     setTopRate,
     upComing,
     setUpComing,
-    isLoding,
     setIsLoding,
     animatedLoding,
-    getLoding
   } = useContext(MoviesContext);
   //https://image.tmdb.org/t/p/w500/
 
-  console.log("Popular: ", popular);
+  console.log("Popular: ", popular.length);
   
-  
-  const {isLoading,data,error,refetch} = useQuery('movies', 
-    async () => {
-      
-      const responseNowPlaying = await getRequest(
-        "/3/movie/now_playing?language=en-US&page=1"
-      );
-      setIsLoding(false);
-      setNowPlaying(responseNowPlaying.data.results);
-      
+  const fetchNowPlaying = useQuery({
+    
+    queryKey: ['nowPlaying'],
+    queryFn: async () => {
+        const responseNowPlaying = await getRequest(
+          "/3/movie/now_playing?language=en-US&page=1"
+        );
+        const apiData = responseNowPlaying.data.results;
+        setNowPlaying(apiData);
+        return apiData;
+      },
+      staleTime: 2000,
     }
   )
-  
-  
-  
 
-  const handleRefresh = () => {
+  
+  const fetchPopular = useQuery({
+    queryKey: ['popular'],
+    queryFn: async () => {
+          const responsePopular = await getRequest('/3/movie/popular?language=en-US&page=1');
+          const popularData = responsePopular.data.results;
+          setPopular(popularData);
+          return popularData;
+        },
+        staleTime: 2000, 
+      })
+
+  const fetchTopRated =  useQuery({
+        queryKey: ['topRate'],
+        queryFn: async () => {
+              const responsePopular = await getRequest('/3/movie/top_rated?language=en-US&page=1');
+              const apiData = responsePopular.data.results;
+              setTopRate(apiData);
+              return apiData;
+            },
+            staleTime: 2000,
+            // refetchInterval: 10000,
+            // refetchOnWindowFocus: true,
+            // refetchOnMount: true,
+            // refetchOnReconnect: true,
+          })
+
+  const fetchUpComing = useQuery({
+            queryKey: ['upComing'],
+            queryFn: async () => {
+                  const responsePopular = await getRequest('/3/movie/upcoming?language=en-US&page=1');
+                  const apiData = responsePopular.data.results;
+                  setUpComing(apiData);
+                  return apiData;
+                },
+                staleTime: 2000,
+              })
+
+
+  const paginationNowPlaying = () => {
     numRef.current = numRef.current + 1;
     setTimeout(async () => {
       const response = await getRequest(
         `/3/movie/now_playing?language=en-US&page=${numRef.current}`
       );
-      //   const responJson = await response.json();
       const apiData = response.data.results;
-      setMovies([...movies, ...apiData]);
+      // setMovies([...movies, ...apiData]);
       setNowPlaying([...nowPlaying, ...apiData]);
-      setPopular([...popular, ...apiData]);
-      setTopRate([...topRate, ...apiData]);
-      setUpComing([...upComing,...apiData]);
-      // console.log("Refreshing Api: ", movies);
     }, 1000);
 
-    // setIsRefreshing(isRefreshing+1);
   };
+  
+  const paginationPopular = () => {
+    numRef.current = numRef.current + 1;
+    setTimeout( async () =>  {
+      const response = await getRequest(`/3/movie/popular?language=en-US&page=${numRef.current}`);
+      const apiData = response.data.results;
+      setPopular([...popular, ...apiData])
+    })
+  }
+
+  const paginationTopRate = () => {
+    numRef.current = numRef.current + 1;
+    setTimeout( async () => {
+      const response = await getRequest(`/3/movie/top_rated?language=en-US&page=${numRef.current}`);
+      const apiData = response.data.results;
+      setTopRate([...topRate, ...apiData]);
+    }, 1000);
+  }
+
+  const paginationUpComing = () => {
+    numRef.current = numRef.current + 1;
+    setTimeout( async () => {
+      const response = await getRequest(`/3/movie/upcoming?language=en-US&page=${numRef.current}`);
+      const apiData = response.data.results;
+      setUpComing([...upComing, ...apiData]);
+    }, 1000);
+  }
 
   const handleSearch = async (text) => {
     setSearch(text);
-    if (!text) {
+    if (text=='') {
       setTimeout(() => {
-      nowPlaying;
-      popular;
-      topRate;
-      upComing;
-      }, 1000);
+
+        setNowPlaying(fetchNowPlaying.data);
+        setPopular(fetchPopular.data);
+        setTopRate(fetchTopRated.data);
+        setUpComing(fetchUpComing.data);
+      }, 2000);
     } else {
       setTimeout(async () => {
-        const response = await getRequest(
+        const responseNowPlaying = await getRequest(
           `/3/search/movie?query=${text}&include_adult=false&language=en-US&page=1`
         );
-        // const responJson = await response.json();
-        const apiData = response.data.results;
-        // setMovies(apiData);
-        setNowPlaying([...nowPlaying, apiData]);
-        // setPopular(apiData);
-        // setTopRate(apiData);
-        // setUpComing(apiData);
+        const nowPlayingData = responseNowPlaying.data.results;
+        setNowPlaying(nowPlayingData);
+
+        const responsePopular = await getRequest(
+          `/3/search/movie?query=${text}&include_adult=false&language=en-US&page=2`
+        );
+        const popularData = responsePopular.data.results;
+        setPopular(popularData);
+
+        const responseTopRate = await getRequest(
+          `/3/search/movie?query=${text}&include_adult=false&language=en-US&page=3`
+        );
+        const topRateData = responseTopRate.data.results;
+        setTopRate(topRateData);
+
+        const responseUpComing = await getRequest(
+          `/3/search/movie?query=${text}&include_adult=false&language=en-US&page=4`
+        );
+        const upComingData = responseUpComing.data.results;
+        setUpComing(upComingData);
       }, 1000);
     }
   };
@@ -117,7 +185,6 @@ export default function MoviesList({ navigation}) {
       width: '100%',
       paddingTop: 50,
       paddingBottom: 20,
-      paddingHorizontal: 20
     },
     searchContainer: {
       flexDirection: "row",
@@ -150,13 +217,14 @@ export default function MoviesList({ navigation}) {
     },
     
     cardContainer: {
-      paddingHorizontal: 10,
-      paddingVertical: 10,
-      marginLeft: 10,
+      flex: 1,
+      paddingVertical: 15,
+      paddingLeft: 20,
       borderRadius: 10,
-      rowGap: 10
+      // backgroundColor: 'red'
     },
     card: {
+      flex: 1,
       alignItems: "center",
       justifyContent: "center",
       padding: 10,
@@ -173,50 +241,49 @@ export default function MoviesList({ navigation}) {
       height: 150,
       borderRadius: 10,
     },
-    cardTitle: {
-      color: theme?"#fff":'#000',
-      fontSize: 20,
-      fontWeight: "700",
-      marginHorizontal: "auto",
-      marginTop: 5,
-    },
-    cardOverview: {
-      color: "#fff",
-      fontSize: 13,
-      textAlign: "center",
-      letterSpacing: 1,
-      lineHeight: 20,
-    },
-    footerContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      marginVertical: 10,
-      width: "100%",
-    },
-    cardFooter: {
-      flexDirection: "row",
-      alignItems: "center",
-    },
-    cardFooter_popularity: {
-      alignItems: 'center',
-      justifyContent: 'center',
-      color: "#fff",
-      marginStart: 2,
-      fontWeight: "700",
-      fontSize: 8
-    },
-    cardFooter_voteAverage: {
-      color: theme?"#fff":'#000',
-      marginStart: 2,
-      fontWeight: "700",
-      fontSize: 8
-    },
-    cardFooter_releaseDate: {
-      color: theme?"#fff":'#000',
-      fontWeight: "bold",
-      fontSize: 8
-    },
+    // cardTitle: {
+    //   color: theme?"#fff":'#000',
+    //   fontSize: 20,
+    //   fontWeight: "700",
+    //   marginHorizontal: "auto",
+    //   marginTop: 5,
+    // },
+    // cardOverview: {
+    //   color: "#fff",
+    //   fontSize: 13,
+    //   textAlign: "center",
+    //   letterSpacing: 1,
+    //   lineHeight: 20,
+    // },
+    // footerContainer: {
+    //   alignItems: "center",
+    //   justifyContent: "space-between",
+    //   marginLeft: 10,
+    //   width: "100%",
+    // },
+    // cardFooter: {
+    //   flexDirection: "row",
+    //   alignItems: "center",
+    // },
+    // cardFooter_popularity: {
+    //   alignItems: 'center',
+    //   justifyContent: 'center',
+    //   color: "#fff",
+    //   marginStart: 2,
+    //   fontWeight: "700",
+    //   fontSize: 8
+    // },
+    // cardFooter_voteAverage: {
+    //   color: theme?"#fff":'#000',
+    //   marginStart: 2,
+    //   fontWeight: "700",
+    //   fontSize: 8
+    // },
+    // cardFooter_releaseDate: {
+    //   color: theme?"#fff":'#000',
+    //   fontWeight: "bold",
+    //   fontSize: 8
+    // },
     bottomTapNagivator: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -233,9 +300,9 @@ export default function MoviesList({ navigation}) {
 
   return (
           <>
-            {isLoading? animatedLoding(): 
+            {fetchNowPlaying.isLoading? animatedLoding(): 
             
-              <View style={{ flex: 1, width: "100%",backgroundColor: theme?'#000':'#fff',}}>
+              <View style={{ flex: 1, backgroundColor: theme?'#000':'#fff'}}>
                 <View style={styles.header}>
                   {/* <Pressable style={{alignItems: 'center'}} onPress={() => navigation.navigate('Home')}>
                     <ArrowLeft color='#fff' size={25}/>
@@ -329,31 +396,83 @@ export default function MoviesList({ navigation}) {
                   onEndReached={handleRefresh}
                 /> */}
                 <ScrollView>
+                    <Text style={{color: theme?'#fff':'#000', fontSize: 15, fontWeight: 'bold', marginLeft: 20, paddingTop: 30}}>Now Playing</Text>
                   
-                <Text style={{color: theme?'#fff':'#000', fontSize: 15, fontWeight: 'bold', marginLeft: 20, paddingTop: 30}}>Now Playing</Text>
-                  <View style={styles.cardContainer}>
-                    <FlatList horizontal data={nowPlaying} renderItem={({item, index}) => {
-                      return(
-                        <Pressable key={index} style={styles.card} onPress={() => navigation.navigate("Movie Details", {Id: item.id, title: item.title})}>
-                          <Image
-                              source={{
-                                uri: `https://image.tmdb.org/t/p/original/${item.poster_path}`,
+                    <View style={styles.cardContainer}>
+                      <FlatList horizontal data={nowPlaying} renderItem={({item, index}) => {
+                        return(
+                          <Pressable style={styles.card} onPress={() => navigation.navigate("Movie Details", {Id: item.id, title: item.title})}>
+                            <Image
+                                source={{
+                                  uri: `https://image.tmdb.org/t/p/original/${item.poster_path}`,
+                                }}
+                                style={styles.cardImage}
+                              />
+                            <Text style={{color: theme?'#fff':'#000', fontSize: 8, fontWeight: 'bold', textAlign: 'center'}}>{item.title}</Text>
+                          </Pressable>
+                        )
+                      }}
+                      keyExtractor={i => i.id}
+                      onEndReached={paginationNowPlaying}
+                      />
+                    </View>
+                  
+                      <Text style={{color: theme?'#fff':'#000', fontSize: 15, fontWeight: 'bold', marginLeft: 20}}>Popular</Text>
+                      <View style={styles.cardContainer}>
+                          <FlatList horizontal data={popular} renderItem={({item, index}) => {
+                          return(
+                                  <Pressable key={index} style={styles.card} onPress={() => navigation.navigate("Movie Details", {Id: item.id, title: item.title})}>
+                                  <Image
+                                      source={{
+                                          uri: `https://image.tmdb.org/t/p/original/${item.poster_path}`,
+                                      }}
+                                      style={styles.cardImage}
+                                      />
+                                  <Text style={{color: theme?'#fff':'#000', fontSize: 8, fontWeight: 'bold', textAlign: 'center'}}>{item.title}</Text>
+                                  </Pressable>
+                              )
                               }}
-                              style={styles.cardImage}
-                            />
-                          <Text style={{color: theme?'#fff':'#000', fontSize: 8, fontWeight: 'bold', textAlign: 'center'}}>{item.title}</Text>
-                        </Pressable>
-                      )
-                    }}
-                    onEndReached={handleRefresh}
-                    />
-                  </View>
+                              onEndReached={paginationPopular}
+                              />
+                      </View>
                   
-                  <Popular />
+                        <Text style={{color: theme?'#fff':'#000', fontSize: 15, fontWeight: 'bold', marginLeft: 20}}>Top Rate</Text>
+                        <View style={styles.cardContainer}>
+                          <FlatList horizontal data={topRate} renderItem={({item, index}) => {
+                          return(
+                                  <Pressable key={index} style={styles.card} onPress={() => navigation.navigate("Movie Details", {Id: item.id, title: item.title})}>
+                                  <Image
+                                      source={{
+                                          uri: `https://image.tmdb.org/t/p/original/${item.poster_path}`,
+                                      }}
+                                      style={styles.cardImage}
+                                      />
+                                  <Text style={{color: theme?'#fff':'#000', fontSize: 8, fontWeight: 'bold', textAlign: 'center'}}>{item.title}</Text>
+                                  </Pressable>
+                              )
+                              }}
+                              onEndReached={paginationTopRate}
+                              />
+                        </View>
                   
-                  <TopRate />
-                  
-                  <UpComing />
+                        <Text style={{color: theme?'#fff':'#000', fontSize: 15, fontWeight: 'bold', marginLeft: 20}}>Up Coming</Text>
+                        <View style={styles.cardContainer}>
+                          <FlatList horizontal data={upComing} renderItem={({item, index}) => {
+                          return(
+                                  <Pressable key={index} style={styles.card} onPress={() => navigation.navigate("Movie Details", {Id: item.id, title: item.title})}>
+                                  <Image
+                                      source={{
+                                          uri: `https://image.tmdb.org/t/p/original/${item.poster_path}`,
+                                      }}
+                                      style={styles.cardImage}
+                                      />
+                                  <Text style={{color: theme?'#fff':'#000', fontSize: 8, fontWeight: 'bold', textAlign: 'center'}}>{item.title}</Text>
+                                  </Pressable>
+                              )
+                              }}
+                              onEndReached={paginationUpComing}
+                              />
+                        </View>
 
                 </ScrollView>
                 <View style={styles.bottomTapNagivator}>

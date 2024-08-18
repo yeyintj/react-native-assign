@@ -5,7 +5,6 @@ import React, {
   useRef,
   useState,
 } from "react";
-import {useQuery} from "react-query";
 import MoviesContext from "./MoviesContext";
 import MoviesList from "./MoviesList";
 import { getRequest } from "./Api";
@@ -18,6 +17,7 @@ import SignIn from "./SignIn";
 import Setting from "./Setting";
 import SignUp from "./SignUp";
 import LottieView from "lottie-react-native";
+import { useQuery } from "@tanstack/react-query";
 
 const Stack = createNativeStackNavigator();
 
@@ -42,15 +42,13 @@ export default function MoviesApp({children}) {
 
   // const {title} = route.params
   console.log("Theme: ", theme);
+  console.log("Loading: ", isLoding);
 
-  const getLoding = () => {
-    return <View style={{
-        flex: 1,
-        backgroundColor: theme?"#000":'#fff',
-        paddingVertical: '50%'
-      }}>
-        <ActivityIndicator color={theme?'#fff':'#000'} size='50'/>
-    </View>
+  
+  if(isLoding){
+    setTimeout(() => {
+      setIsLoding(false);
+    }, 3000);
   }
 
   const darkTheme = () => {
@@ -71,7 +69,7 @@ export default function MoviesApp({children}) {
 
       setTimeout(() => {
         setIsLoding(false)
-      }, 100)
+      }, 3000)
   }
 
   const animatedLoding = () => {
@@ -106,11 +104,8 @@ export default function MoviesApp({children}) {
           signOutBtn,
           isLoding,
           setIsLoding,
-          getLoding,
           search,
           setSearch,
-          isRefreshing,
-          setIsRefreshing,
           numRef,
           nowPlaying,
           setNowPlaying,
@@ -120,9 +115,6 @@ export default function MoviesApp({children}) {
           setTopRate,
           upComing,
           setUpComing,
-          isLoding,
-          setIsLoding,
-          getLoding,
           setIsSignedIn,
           animatedLoding
         }}
@@ -131,7 +123,9 @@ export default function MoviesApp({children}) {
         (
             <Stack.Navigator>
                 <Stack.Screen name="Home" component={MoviesList} options={{headerShown: false}}/>
-                <Stack.Screen name="Movie Details" component={MovieDetails} options={{headerShown: false}}/>
+                <Stack.Screen name="Movie Details" component={MovieDetails} options={{headerShown: false}}>
+                  {children}
+                </Stack.Screen>
                 <Stack.Screen name="Actor Details" component={ActorDetails} options={{headerShown: false}}/>
                 <Stack.Screen name="Setting" component={Setting} options={{headerShown: false}}/>
             </Stack.Navigator>

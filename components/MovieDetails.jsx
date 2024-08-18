@@ -1,48 +1,42 @@
 import React, { Component, useContext, useEffect, useState } from "react";
 import { StyleSheet, Text, View, Image, ScrollView, FlatList, Pressable, ActivityIndicator } from "react-native";
 import { getRequest } from "./Api";
-import { ArrowLeft, Heart } from "lucide-react-native";
+import { ArrowLeft, Heart, Star } from "lucide-react-native";
 import MoviesContext from "./MoviesContext";
-import { useQuery } from "react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
 
 export default function MovieDetails({ navigation, route, }) {
   const {theme, animatedLoding} = useContext(MoviesContext);
   const [detail, setDetail] = useState([]);
-  const [movieList, setMovieLists] = useState([]);
-  const [isLoding, setIsLoding] = useState(true)
+  const [image, setImage] = useState([]);
 
   const { Id, title } = route.params;
 
   // console.log("Movie ID: ", Id);
+  // console.log("Movie Image: ", image);
 
-  useQuery(['movies', Id], 
-    async () => {
-      fetchMovieDetail(Id)
-    }
-  )
-
-
-  const fetchMovieDetail = async (movieId) => {
-    const response = await getRequest(`3/movie/${movieId}/credits?language=en-US`);
-    const responseImage = await getRequest(`3/movie/${movieId}?language=en-US`);
-    setIsLoding(false);
-    setDetail(response.data.cast);
-    setMovieLists(responseImage.data);
-  };
-  // console.log("Movie Detail: ", detail);
-  // console.log("Movie Data: ", data);
+  const fetchDetail = useQuery({
+        queryKey: ['movies', Id], 
+        queryFn: async () => {
+          const response = await getRequest(`/3/movie/${Id}/credits?language=en-US`);
+          const apiData = response.data.cast;
+          setDetail(apiData);
+          return apiData;
+        },
+    });
   
+  const fetchImage =   useQuery({
+        queryKey: ['image', Id], 
+        queryFn: async () => {
+          const response = await getRequest(`3/movie/${Id}?language=en-US`);
+          const apiData = response.data;
+          setImage(apiData);
+          return apiData;
+        },
+    });
   
 
-  const getLoding = () => {
-    return <View style={{
-        flex: 1,
-        backgroundColor: theme?"#000":'#fff',
-        paddingVertical: '50%'
-      }}>
-        <ActivityIndicator color={theme?'#fff':'#000'} size='50'/>
-    </View>
-  }
+ 
 
   const styles = StyleSheet.create({
     header: {
@@ -62,6 +56,7 @@ export default function MovieDetails({ navigation, route, }) {
       borderRadius: 10,
       borderWidth: 5, 
       borderColor: theme?"#deddd5":'#deddd5', 
+      backgroundColor: '#deddd5'
     },
     cardTitle: {
       color: theme?"#fff":'#000',
@@ -81,12 +76,13 @@ export default function MovieDetails({ navigation, route, }) {
       width: 100,
       height: 150,
       borderRadius: 10,
+      
     },
   });
 
   return (
 
-      isLoding ? 
+      fetchDetail.isLoading&&fetchImage.isLoading? 
       
           animatedLoding()
          :
@@ -99,7 +95,7 @@ export default function MovieDetails({ navigation, route, }) {
                 <ArrowLeft color={theme?'#fff':'#fff'} size={25}/>
                 {/* <Text style={{color: '#fff'}}>Back</Text> */}
               </Pressable>
-              <Text style={{color: theme?'#fff':'#fff', fontSize: 18, fontWeight: 'bold'}}>{title}</Text>
+              <Text style={{color: theme?'#fff':'#fff', fontSize: 18, fontWeight: 'bold', textAlign: 'center'}}>{title}</Text>
               <Text style={{opacity: 0}}>title</Text>
             </View>
             <View
@@ -107,29 +103,33 @@ export default function MovieDetails({ navigation, route, }) {
               flex: 1,
               backgroundColor: theme?"#000":'fff',
               alignItems: "center",
-              padding: 20,
+              // padding: 20,
               // rowGap: 10,
             }}
           >
               <ScrollView>
+                
                 <View
-                  style={{alignItems: "center",}}
+                  style={{alignItems: "center", justifyContent: 'center', padding: 20}}
                 >
-                  <Image
-                    source={{
-                      uri: `https://image.tmdb.org/t/p/original/${movieList.poster_path}`,
-                    }}
-                    style={styles.cardImage}
-                  />
-                  <Text style={styles.cardTitle}>{movieList.original_title}</Text>
-                  <Text style={styles.cardOverview}>{movieList.overview}</Text>
+                  {fetchImage.isLoading? animatedLoding(): 
+                  
+                    <Image
+                      source={{
+                        uri: `https://image.tmdb.org/t/p/original/${image.poster_path}`,
+                      }}
+                      style={styles.cardImage}
+                    />
+                  }
+                  <Text style={styles.cardTitle}>{image.original_title}</Text>
+                  <Text style={styles.cardOverview}>{image.overview}</Text>
                 </View>
                 
-                <Text style={{ color: theme?"#fff":'#000', fontSize: 20, marginEnd: 'auto', marginBottom: 10}}>Casts</Text>
+                <Text style={{ color: theme?"#fff":'#000', fontSize: 20, marginLeft: 20, marginBottom: 10}}>Casts</Text>
                   
                 <FlatList horizontal data={detail} renderItem={({item,index})=>{
                   return(
-                    <Pressable key={index} onPress={() => navigation.navigate('Actor Details', {Id: item.id, name: item.name})} style={{alignItems: 'center', justifyContent: 'flex-start',marginLeft:15}}>
+                    <Pressable key={index} onPress={() => navigation.navigate('Actor Details', {Id: item.id, name: item.name})} style={{alignItems: 'center', rowGap: 10, marginLeft: 20}}>
                       <Image
                           style={styles.castImage}
                           source={{
@@ -143,14 +143,17 @@ export default function MovieDetails({ navigation, route, }) {
               </ScrollView>
               
 
-              <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%'}}>
-                <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}}>
+              <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', paddingHorizontal: 10, paddingVertical: 5}}>
+                <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', columnGap: 5}}>
                   <Heart fill='#fa1b1b' size={17}/>
-                  <Text style={{color: theme?'#fff':'#000', fontSize: 8}}>
-                    {movieList.popularity}
+                  <Text style={{color: theme?'#fff':'#000', fontSize: 8, fontWeight: 'bold'}}>
+                    {image.popularity}
                   </Text>
                 </View>
-                <Text style={{color: '#fa1b1b', marginStart: 'auto',}}>{movieList.status}</Text>
+                <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', columnGap: 5}}>
+                  <Star fill='#fa1b1b' size={18}/>
+                  <Text style={{color: theme?'#fff':'#000', fontSize: 8, fontWeight: 'bold'}}>{image.vote_average}</Text>
+                </View>
               </View>
             </View>
          </View>

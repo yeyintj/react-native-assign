@@ -3,39 +3,27 @@ import { Image, ScrollView, Text, View, StyleSheet, ActivityIndicator, Pressable
 import { getRequest } from "./Api";
 import { ArrowLeft } from "lucide-react-native";
 import MoviesContext from "./MoviesContext";
-import { useQuery } from "react-query";
+import { useQuery } from "@tanstack/react-query";
 
 export default function ActorDetails({ navigation,route }) {
   const {theme, animatedLoding} = useContext(MoviesContext);
   const [actorDetails, setActorDetails] = useState([]);
-  const [isLoding, setIsLoding] = useState(true);
 
   const { Id, name } = route.params;
   
-  useQuery(['movies', Id], 
-     () => {
-      fetchActorDetails(Id)
+  const fetchActorDetails = useQuery({
+      queryKey: ['actor', Id],
+      queryFn: async () => {
+        const response = await getRequest(`3/person/${Id}?language=en-US`);
+        const apiData = response.data;
+        setActorDetails(apiData);
+        return apiData;
+      }
     }
   )
 
 
-  const fetchActorDetails = async (actorId) => {
-    const response = await getRequest(`3/person/${actorId}?language=en-US`);
-    setIsLoding(false);
-    setActorDetails(response.data);
-  };
 
-  
-
-  // const getLoding = () => {
-  //   return <View style={{
-  //       flex: 1,
-  //       backgroundColor: theme?"#000":'#fff',
-  //       paddingVertical: '50%'
-  //     }}>
-  //       <ActivityIndicator color={theme?'#fff':'#000'} size='50'/>
-  //   </View>
-  // }
 
   const styles = StyleSheet.create({
     header: {
@@ -75,7 +63,7 @@ export default function ActorDetails({ navigation,route }) {
 
 
   return (
-         isLoding ? animatedLoding()
+         fetchActorDetails.isLoading ? animatedLoding()
          :
          <View style={{flex: 1}}>
             <View style={styles.header}>
@@ -97,7 +85,7 @@ export default function ActorDetails({ navigation,route }) {
                     <Text style={{color: theme?'#fff':'#000', fontSize: 18, fontWeight: 'bold'}}>{actorDetails.name}</Text>
                     <Text style={{color: theme?'#fff':'#000', fontWeight: 'bold'}}>{actorDetails.birthday}</Text>
                     <Text style={{color: theme?'#fff':'#000', fontWeight: 'bold'}}>{actorDetails.place_of_birth}</Text>
-                    <Text style={{color: theme?'#fff':'#000', fontSize: 12, letterSpacing: 1, lineHeight: 20}}>{actorDetails.biography}</Text>
+                    <Text style={{color: theme?'#fff':'#000', fontSize: 12, letterSpacing: 1, lineHeight: 20, textAlign: 'center'}}>{actorDetails.biography}</Text>
                 </View>
                 <Text style={{color: '#fa1b1b', fontWeight: 'bold', marginStart: 'auto', marginTop: 10}}>{actorDetails.deathday}</Text>
                 

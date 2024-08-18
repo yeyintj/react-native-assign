@@ -12,24 +12,12 @@ export default function SignIn({navigation}) {
         setUserName,
         userPassword,
         setUserPassword,
-        signInBtn,
         setIsSignedIn,
         isLoding,
-        setIsLoding,
         animatedLoding
         } = useContext(MoviesContext);
     
-  // const handleSignUp = async () => {
-  //    try {
-  //       await AsyncStorage.setItem('token', '123');
-  //       await AsyncStorage.setItem('name', userName);
-  //       await AsyncStorage.setItem('password', userPassword);
-  //       setUserName('');
-  //       setUserPassword('');
-  //    } catch (err) {
-  //     console.log('Storage Error: ', err);
-  //    }
-  //  }
+  
 
   
   const handleSignIn =  async () => {
@@ -40,7 +28,7 @@ export default function SignIn({navigation}) {
         if(name==userName&&password==userPassword){
           setIsSignedIn(true);
         }else{
-          Alert.alert('Sign In','Invalid user name or password');
+                Alert.alert('Invalid sign in attemp!','Invalid user name or password');
         }
     } catch (err) {
       console.log(err)
@@ -50,7 +38,7 @@ export default function SignIn({navigation}) {
 
   return (
     <>
-      {/* {isLoding ? animatedLoding():  */}
+      {isLoding ? animatedLoding(): 
       
         <View style={{flex: 1,backgroundColor: theme?'#000':'#fff',}}>
             <View style={styles.header}>
@@ -86,7 +74,7 @@ export default function SignIn({navigation}) {
                 </View>
             </View>
         </View>
-      {/* } */}
+      } 
     </>
   )
 }
